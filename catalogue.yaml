@@ -22,21 +22,21 @@
     ansible.builtin.user:
       name: roboshop 
 
-  - name: check app directory exists or not
+  - name: check /app directory exists or not
     ansible.builtin.stat:
       path: /app
-      register: directory
-  - name: print the directory stats  
+    register: directory
+
+  - name: print the directory stats
     ansible.builtin.debug:
-      msg: "output is {{directory}}"
+      msg: "output: {{directory}}"
 
   - when: directory.stat.exists == False
-  - name: create /app directory
+    name: create /app directory
     ansible.builtin.file:
       path: /app
       state: directory
-
-
+      
   - name: download application code
     ansible.builtin.get_url: 
       url: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
