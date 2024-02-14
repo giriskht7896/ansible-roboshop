@@ -15,14 +15,9 @@
     ansible.builtin.command: id roboshop 
     register: output
     ignore_errors: true
-  - name: print the command output
-    ansible.builtin.debug: 
-      msg: "output is : {{output}}"
-  - name: print the exit status
-    ansible.builtin.debug: 
-      msg: "{{output.rc}}"
+
   - when: output.rc != 0
-  - name: create user roboshop 
+    name: create user roboshop 
     become: yes  
     ansible.builtin.user:
       name: roboshop 
@@ -82,12 +77,12 @@
   - name: load catalogue data
     ansible.builtin.shell: mongo --host mongo.devopsskht.xyz  <  /app/schema/catalogue.js
       
-- name: Start service  if not started
-  ansible.builtin.service:
-    name: catalogue
-    state: restarted
+  - name: Start service  if not started
+    ansible.builtin.service:
+      name: catalogue
+      state: restarted
 
-- name: Enable service catalogue
-  ansible.builtin.service:
-    name: catalogue
-    enabled: yes
+  - name: Enable service catalogue
+    ansible.builtin.service:
+      name: catalogue
+      enabled: yes
