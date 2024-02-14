@@ -15,12 +15,7 @@
     ansible.builtin.command: id roboshop 
     register: output
     ignore_errors: true
-  - name: print the command output
-    ansible.builtin.debug: 
-      msg: "output is : {{output}}"
-  - name: print the exit status
-    ansible.builtin.debug: 
-      msg: "{{output.rc}}"
+  
   - when: output.rc != 0
   - name: create user roboshop 
     become: yes  
@@ -31,6 +26,7 @@
     ansible.builtin.stat:
       path: /app
       register: directory
+      
   - name: print the directory stats  
     ansible.builtin.debug:
       msg: "output is {{directory}}"
