@@ -1,0 +1,93 @@
+- name: install catalogue component
+  hosts: catalogue
+  become: yes  
+  tasks:
+  - name: nodejs repo download
+    ansible.builtin.shell:  curl -sL https://rpm.nodesource.com/setup_lts.x | bash
+      
+  - name: install nodejs
+    ansible.builtin.yum:
+      name: nodejs
+      state: installed
+
+
+  - name: check roboshop user exist or not
+    ansible.builtin.command: id roboshop 
+    register: output
+    ignore_errors: true
+  - name: print the command output
+    ansible.builtin.debug: 
+      msg: "output is : {{output}}"
+  - name: print the exit status
+    ansible.builtin.debug: 
+      msg: "{{output.rc}}"
+  - when: output.rc != 0
+  - name: create user roboshop 
+    become: yes  
+    ansible.builtin.user:
+      name: roboshop 
+
+  - name: check app directory exists or not
+    ansible.builtin.stat:
+      path: /app
+      register: directory
+  - name: print the directory stats  
+    ansible.builtin.debug:
+      msg: "output is {{directory}}"
+
+  - when: directory.stat.exists == 'false'
+  - name: create /app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+
+  - name: download application code
+    ansible.builtin.get_url: 
+      url: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
+      dest: /tmp  
+
+  - name: Extract
+    ansible.builtin.unarchive:
+      src: /tmp/catalogue.zip
+      dest: /app
+      remote_src: yes
+
+  - name: install dependencies
+    ansible.builtin.command: 
+     name: npm install
+    args:
+      chdir: /app
+
+  - name: copy catalogue 
+    ansible.builtin.copy:
+        src: catalogue.service
+        dest: /etc/systemd/system/catalogue.service
+
+  - name: daemon_reload 
+    ansible.builtin.systemd_service:
+      state: restarted
+      daemon_reload: true
+
+  - name: copy mongo-repo
+    ansible.builtin.copy:
+        src: mongo.repo
+        dest: /etc/yum.repos.d/mongo.repo
+
+  - name: install mongodb 
+    ansible.builtin.yum:
+      name: mongodb-org-shell
+      state: installed
+
+  - name: load catalogue data
+    ansible.builtin.shell: mongo --host mongo.devopsskht.xyz  <  /app/schema/catalogue.js
+      
+- name: Start service  if not started
+  ansible.builtin.service:
+    name: catalogue
+    state: restarted
+
+- name: Enable service catalogue
+  ansible.builtin.service:
+    name: catalogue
+    enabled: yes

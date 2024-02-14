@@ -1,0 +1,36 @@
+- name: install catalogue component
+  hosts: catalogue
+  become: yes  
+  tasks:
+  - name: remirepo
+    ansible.builtin.yum:
+      name: https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+      state: installed
+
+  - name: enable redis 6.2
+    ansible.builtin.command: yum module enable redis:remi-6.2 -y
+
+  - name: redis
+    ansible.builtin.yum:
+        name: redis
+        state: installed  
+
+
+  - name: change the ports
+    ansible.builtin.replace:
+        path: /etc/redis.conf
+        regexp: 127.0.0.1  
+        replace: 0.0.0.0 
+
+  - name: Enable service catalogue
+    ansible.builtin.service:
+      name: redis
+      enabled: yes
+      
+  - name: Start service  if not started
+    ansible.builtin.service:
+      name: redis
+      state: restarted
+
+  
+      
