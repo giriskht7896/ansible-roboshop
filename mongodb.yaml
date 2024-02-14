@@ -19,6 +19,7 @@
 
   - name: Enable service started 
     ansible.builtin.service:
+    name: mongod
     state: started
 
   - name: change the ports
